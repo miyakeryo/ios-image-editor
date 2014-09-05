@@ -3,6 +3,9 @@
 @protocol HFImageEditorFrame
 @required
 @property(nonatomic,assign) CGRect cropRect;
+@optional
+@property(nonatomic,strong) UIColor *borderColor;
+@property(nonatomic,assign) CGFloat borderWidth;
 @end
 
 @class  HFImageEditorViewController;

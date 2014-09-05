@@ -10,13 +10,16 @@
 
 @synthesize cropRect = _cropRect;
 @synthesize imageView  = _imageView;
-
+@synthesize borderColor = _borderColor;
+@synthesize borderWidth = _borderWidth;
 
 - (void) initialize
 {
     self.opaque = NO;
     self.layer.opacity = 0.7;
     self.backgroundColor = [UIColor clearColor];
+    self.borderColor = [UIColor colorWithWhite:1 alpha:0.5];
+    self.borderWidth = 1;
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.bounds];
     imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self addSubview:imageView];
@@ -51,10 +54,19 @@
         CGContextRef context = UIGraphicsGetCurrentContext();
         [[UIColor blackColor] setFill];
         UIRectFill(self.bounds);
-        CGContextSetStrokeColorWithColor(context, [[UIColor whiteColor] colorWithAlphaComponent:0.5].CGColor);
-        CGContextStrokeRect(context, cropRect);
+        
         [[UIColor clearColor] setFill];
         UIRectFill(CGRectInset(cropRect, 1, 1));
+        
+        CGContextSetStrokeColorWithColor(context, _borderColor.CGColor);
+        CGContextSetLineWidth(context, _borderWidth);
+        CGRect borderRect = cropRect;
+        borderRect.origin.x += _borderWidth/2;
+        borderRect.origin.y += _borderWidth/2;
+        borderRect.size.width -= _borderWidth;
+        borderRect.size.height -= _borderWidth;
+        CGContextStrokeRect(context, borderRect);
+        
         self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
 
         UIGraphicsEndImageContext();

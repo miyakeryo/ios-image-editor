@@ -20,6 +20,12 @@
     return self;
 }
 
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.frameView.borderColor = [UIColor colorWithWhite:1 alpha:0.8];
+    self.frameView.borderWidth = 1;
+}
 
 - (void)viewDidUnload
 {
