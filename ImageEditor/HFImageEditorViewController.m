@@ -562,14 +562,28 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
     CGAffineTransform transform;
     [self transform:&transform andSize:&srcSize forOrientation:orientation];
     
-    CGContextRef context = CGBitmapContextCreate(NULL,
-                                                 size.width,
-                                                 size.height,
-                                                 CGImageGetBitsPerComponent(source),
-                                                 0,
-                                                 CGImageGetColorSpace(source),
-                                                 CGImageGetBitmapInfo(source)
-                                                 );
+    size_t bitsPerComponent = CGImageGetBitsPerComponent(source);
+    size_t bytesPerRow = 0;
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGColorSpaceModel colorSpaceModel = CGColorSpaceGetModel(colorSpace);
+    CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(source);
+    
+    if (colorSpaceModel == kCGColorSpaceModelRGB) {
+        uint32_t alpha = (bitmapInfo & kCGBitmapAlphaInfoMask);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wassign-enum"
+        if (alpha == kCGImageAlphaNone) {
+            bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+            bitmapInfo |= kCGImageAlphaNoneSkipFirst;
+        } else if (!(alpha == kCGImageAlphaNoneSkipFirst || alpha == kCGImageAlphaNoneSkipLast)) {
+            bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+            bitmapInfo |= kCGImageAlphaPremultipliedFirst;
+        }
+#pragma clang diagnostic pop
+    }
+    
+    CGContextRef context = CGBitmapContextCreate(NULL, size.width, size.height, bitsPerComponent, bytesPerRow, colorSpace, bitmapInfo);
+    CGColorSpaceRelease(colorSpace);
     
     CGContextSetInterpolationQuality(context, quality);
     CGContextTranslateCTM(context,  size.width/2,  size.height/2);
@@ -602,14 +616,30 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
     
     CGFloat aspect = cropRect.size.height/cropRect.size.width;
     CGSize outputSize = CGSizeMake(outputWidth, outputWidth*aspect);
+
+    size_t bitsPerComponent = CGImageGetBitsPerComponent(source);
+    size_t bytesPerRow = 0;
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGColorSpaceModel colorSpaceModel = CGColorSpaceGetModel(colorSpace);
+    CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(source);
     
-    CGContextRef context = CGBitmapContextCreate(NULL,
-                                                 outputSize.width,
-                                                 outputSize.height,
-                                                 CGImageGetBitsPerComponent(source),
-                                                 0,
-                                                 CGImageGetColorSpace(source),
-                                                 CGImageGetBitmapInfo(source));
+    if (colorSpaceModel == kCGColorSpaceModelRGB) {
+        uint32_t alpha = (bitmapInfo & kCGBitmapAlphaInfoMask);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wassign-enum"
+        if (alpha == kCGImageAlphaNone) {
+            bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+            bitmapInfo |= kCGImageAlphaNoneSkipFirst;
+        } else if (!(alpha == kCGImageAlphaNoneSkipFirst || alpha == kCGImageAlphaNoneSkipLast)) {
+            bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+            bitmapInfo |= kCGImageAlphaPremultipliedFirst;
+        }
+#pragma clang diagnostic pop
+    }
+    
+    CGContextRef context = CGBitmapContextCreate(NULL, outputSize.width, outputSize.height, bitsPerComponent, bytesPerRow, colorSpace, bitmapInfo);
+    CGColorSpaceRelease(colorSpace);
+
     CGContextSetFillColorWithColor(context,  [[UIColor clearColor] CGColor]);
     CGContextFillRect(context, CGRectMake(0, 0, outputSize.width, outputSize.height));
     
