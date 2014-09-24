@@ -12,6 +12,7 @@
 @synthesize imageView  = _imageView;
 @synthesize borderColor = _borderColor;
 @synthesize borderWidth = _borderWidth;
+@synthesize circle = _circle;
 
 - (void) initialize
 {
@@ -44,7 +45,25 @@
     return self;
 }
 
-
+void CGContextRoundRectPath(CGContextRef context, CGRect rect, CGFloat radius)
+{
+    CGFloat lx = CGRectGetMinX(rect);
+    CGFloat rx = CGRectGetMaxX(rect);
+    CGFloat ty = CGRectGetMinY(rect);
+    CGFloat by = CGRectGetMaxY(rect);
+    
+    CGContextBeginPath(context);
+    CGContextMoveToPoint(context, lx+radius, by);
+    CGContextAddArcToPoint(context, lx, by, lx, by-radius, radius);
+    CGContextAddArcToPoint(context, lx, ty, lx+radius, ty, radius);
+    CGContextAddArcToPoint(context, rx, ty, rx, ty+radius, radius);
+    CGContextAddArcToPoint(context, rx, by, rx-radius, by, radius);
+    CGContextClosePath(context);
+}
+void CGContextCirclePath(CGContextRef context, CGRect rect)
+{
+    CGContextRoundRectPath(context, rect, rect.size.width/2);
+}
 
 - (void)setCropRect:(CGRect)cropRect
 {
@@ -56,7 +75,15 @@
         UIRectFill(self.bounds);
         
         [[UIColor clearColor] setFill];
-        UIRectFill(CGRectInset(cropRect, 1, 1));
+        
+        if(_circle){
+            CGContextCirclePath(context,CGRectInset(cropRect, 1, 1));
+            CGContextSetBlendMode(context,kCGBlendModeClear);
+            CGContextFillPath(context);
+            CGContextSetBlendMode(context,kCGBlendModeNormal);
+        }else{
+            UIRectFill(CGRectInset(cropRect, 1, 1));
+        }
         
         CGContextSetStrokeColorWithColor(context, _borderColor.CGColor);
         CGContextSetLineWidth(context, _borderWidth);
@@ -65,12 +92,22 @@
         borderRect.origin.y += _borderWidth/2;
         borderRect.size.width -= _borderWidth;
         borderRect.size.height -= _borderWidth;
-        CGContextStrokeRect(context, borderRect);
+        if(_circle){
+            CGContextCirclePath(context,borderRect);
+            CGContextStrokePath(context);
+        }else{
+            CGContextStrokeRect(context, borderRect);
+        }
         
         self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
 
         UIGraphicsEndImageContext();
     }
+}
+
+- (void)addCirclePath:(CGContextRef)context rect:(CGRect)rect
+{
+    
 }
 
 /*
