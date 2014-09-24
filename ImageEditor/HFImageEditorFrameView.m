@@ -45,7 +45,7 @@
     return self;
 }
 
-void CGContextRoundRectPath(CGContextRef context, CGRect rect, CGFloat radius)
+static void CGContextRoundRectPath(CGContextRef context, CGRect rect, CGFloat radius)
 {
     CGFloat lx = CGRectGetMinX(rect);
     CGFloat rx = CGRectGetMaxX(rect);
@@ -60,7 +60,7 @@ void CGContextRoundRectPath(CGContextRef context, CGRect rect, CGFloat radius)
     CGContextAddArcToPoint(context, rx, by, rx-radius, by, radius);
     CGContextClosePath(context);
 }
-void CGContextCirclePath(CGContextRef context, CGRect rect)
+static void CGContextCirclePath(CGContextRef context, CGRect rect)
 {
     CGContextRoundRectPath(context, rect, rect.size.width/2);
 }
